@@ -95,30 +95,53 @@ class UserService
 
     public function deleteUser(string $id): array
     {
-        
-        if (empty($id)) {
+        try {
+            $user = $this->userRepository->findOneBy(['id' => $id]);
+            
+            if (!$user) {
+                return [
+                    'body' => ['error' => 'User not found'],
+                    'status' => Response::HTTP_NOT_FOUND
+                ];
+            }
+
+            // For teachers, check if they have classes
+            if ($user->getRole() === UserRole::TEACHER) {
+                if (!$user->getClassrooms()->isEmpty()) {
+                    return [
+                        'body' => ['error' => 'Cannot delete teacher with active classrooms'],
+                        'status' => Response::HTTP_CONFLICT
+                    ];
+                }
+            }
+
+            // For students, remove their test results and enrollments first
+            if ($user->getRole() === UserRole::STUDENT) {
+                foreach ($user->getTestResults() as $testResult) {
+                    $this->entityManager->remove($testResult);
+                }
+                
+                foreach ($user->getEnrolledClasses() as $enrollment) {
+                    $this->entityManager->remove($enrollment);
+                }
+            }
+
+            $this->entityManager->flush();
+
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
+
             return [
-                'body' => ['error' => 'Missing required field'],
-                'status' => Response::HTTP_BAD_REQUEST
+                'body' => ['message' => 'User deleted successfully'],
+                'status' => Response::HTTP_OK
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'body' => ['error' => 'Failed to delete user: ' . $e->getMessage()],
+                'status' => Response::HTTP_INTERNAL_SERVER_ERROR
             ];
         }
-        
-
-        $user = $this->userRepository->findOneBy(['id' => $id]);
-        if (!$user) {
-            return [
-                'body' => ['error' => 'User not found'],
-                'status' => Response::HTTP_NOT_FOUND
-            ];
-        }
-
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
-
-        return [
-            'body' => ['message' => 'User deleted successfully'],
-            'status' => Response::HTTP_OK
-        ];
     }
 
 

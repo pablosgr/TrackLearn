@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import type { UserData } from '../../types/user-context-type';
-import StudentListCard from './StudentListCard.tsx';
+import UserCard from './UserCard';
 
 const ClassroomStudents: FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -108,9 +108,9 @@ const ClassroomStudents: FC = () => {
       {students.length > 0 ? (
         <ul className="divide-y divide-gray-100">
           {students.map(student => (
-            <StudentListCard
+            <UserCard
               key={student.id}
-              student={student}
+              user={student}
               onDelete={handleStudentDelete} 
             />
           ))}

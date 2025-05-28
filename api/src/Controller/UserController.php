@@ -65,7 +65,7 @@ final class UserController extends AbstractController{
         name: 'id',
         in: 'path',
         description: 'User ID',
-        schema: new OA\Schema(type: 'integer'),
+        schema: new OA\Schema(type: 'string'),
         example: 1
     )]
     #[OA\Response(

@@ -142,7 +142,7 @@ export default function ClassroomDetail() {
         ) : (
           userData?.role === 'teacher' && 
           <ClassroomSettings 
-            currentName={classroom.name} 
+            currentName={classroom.name}
             onUpdate={handleClassUpdate}
           />
         )}

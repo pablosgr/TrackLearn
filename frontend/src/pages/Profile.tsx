@@ -152,11 +152,15 @@ export default function Profile() {
             <ProfileField label="Username" value={userData?.username} />
             <ProfileField label="Email" value={userData?.email} />
             
-            <div className="pt-6 flex justify-end">
-              <Button onClick={() => setIsEditing(true)}>
-                Edit Profile
-              </Button>
-            </div>
+            {
+              userData?.role !== "admin" && (
+                <div className="pt-6 flex justify-end">
+                  <Button onClick={() => setIsEditing(true)}>
+                    Edit Profile
+                  </Button>
+                </div>
+              )
+            }
           </div>
         )}
       </ProfileCard>

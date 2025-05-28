@@ -55,8 +55,13 @@ export default function Layout() {
           <ul className='flex flex-row gap-8 justify-end'>
             <Link to="/home"><li>Home</li></Link>
             {
-              userData?.role === 'teacher' && (
+              userData?.role !== 'student' && (
                 <Link to="/test"><li>Tests</li></Link>
+              )
+            }
+            {
+              userData?.role === 'admin' && (
+                <Link to="/users"><li>Users</li></Link>
               )
             }
             <Link to="/classroom"><li>Classrooms</li></Link>

@@ -41,8 +41,14 @@ class User implements PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, Classroom>
      */
-    #[ORM\OneToMany(targetEntity: Classroom::class, mappedBy: 'teacher_id', orphanRemoval: true)]
-    private Collection $taught_classrooms;
+    #[ORM\OneToMany(targetEntity: Classroom::class, mappedBy: 'teacher', orphanRemoval: true)]
+    private Collection $classrooms;
+
+    /**
+     * @var Collection<int, StudentClass>
+     */
+    #[ORM\OneToMany(targetEntity: StudentClass::class, mappedBy: 'student', orphanRemoval: true)]
+    private Collection $enrolledClasses;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $picture = null;
@@ -59,12 +65,6 @@ class User implements PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: TestResult::class, mappedBy: 'student')]
     private Collection $testResults;
 
-    /**
-     * @var Collection<int, StudentClass>
-     */
-    #[ORM\OneToMany(targetEntity: StudentClass::class, mappedBy: 'student', orphanRemoval: true)]
-    private Collection $enrolledClasses;
-
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
@@ -74,10 +74,10 @@ class User implements PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
-        $this->taught_classrooms = new ArrayCollection();
+        $this->classrooms = new ArrayCollection();
+        $this->enrolledClasses = new ArrayCollection();
         $this->created_tests = new ArrayCollection();
         $this->testResults = new ArrayCollection();
-        $this->enrolledClasses = new ArrayCollection();
     }
 
     public function getId(): ?string
@@ -160,28 +160,33 @@ class User implements PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, Classroom>
      */
-    public function getTaughtClassrooms(): Collection
+    public function getClassrooms(): Collection
     {
-        return $this->taught_classrooms;
+        return $this->classrooms;
     }
 
-    public function addTaughtClassroom(Classroom $taughtClassroom): static
+    /**
+     * @return Collection<int, StudentClass>
+     */
+    public function getEnrolledClasses(): Collection
     {
-        if (!$this->taught_classrooms->contains($taughtClassroom)) {
-            $this->taught_classrooms->add($taughtClassroom);
-            $taughtClassroom->setTeacher($this);
+        return $this->enrolledClasses;
+    }
+
+    public function addEnrolledClass(StudentClass $enrollment): static
+    {
+        if (!$this->enrolledClasses->contains($enrollment)) {
+            $this->enrolledClasses->add($enrollment);
+            $enrollment->setStudent($this);
         }
 
         return $this;
     }
 
-    public function removeTaughtClassroom(Classroom $taughtClassroom): static
+    public function removeEnrolledClass(StudentClass $enrollment): static
     {
-        if ($this->taught_classrooms->removeElement($taughtClassroom)) {
-            // set the owning side to null (unless already changed)
-            if ($taughtClassroom->getTeacher() === $this) {
-                $taughtClassroom->setTeacher(null);
-            }
+        if ($this->enrolledClasses->removeElement($enrollment)) {
+            // Not setting null because the entity has a composite primary key
         }
 
         return $this;
@@ -254,33 +259,6 @@ class User implements PasswordAuthenticatedUserInterface
             if ($testResult->getStudent() === $this) {
                 $testResult->setStudent(null);
             }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StudentClass>
-     */
-    public function getEnrolledClasses(): Collection
-    {
-        return $this->enrolledClasses;
-    }
-
-    public function addEnrolledClass(StudentClass $enrollment): static
-    {
-        if (!$this->enrolledClasses->contains($enrollment)) {
-            $this->enrolledClasses->add($enrollment);
-            $enrollment->setStudent($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEnrolledClass(StudentClass $enrollment): static
-    {
-        if ($this->enrolledClasses->removeElement($enrollment)) {
-            // Not setting null because the entity has a composite primary key
         }
 
         return $this;

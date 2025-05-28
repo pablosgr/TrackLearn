@@ -6,8 +6,9 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Classroom from './pages/Classroom'
 import ClassroomDetail from './pages/ClassroomDetail'
-import EnrollClassroom from './pages/EnrollClassroom';
+import EnrollClassroom from './pages/EnrollClassroom'
 import Test from './pages/Test'
+import Users from './pages/Users'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path='/classroom' element={<Classroom />} />
             <Route path="/classroom/:id" element={<ClassroomDetail />} />
             <Route path="/enroll/:id" element={<EnrollClassroom />} />
+            <Route path="/users" element={<Users />} />
           </Route>
         </Routes>
     </>
