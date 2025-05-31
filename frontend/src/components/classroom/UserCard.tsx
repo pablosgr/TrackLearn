@@ -24,6 +24,9 @@ const UserCard: FC<UserCardProps> = ({ user, onDelete }) => {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user');
       setShowDeleteModal(false);
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   };
 

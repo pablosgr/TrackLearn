@@ -15,33 +15,17 @@ const ClassroomCard: FC<ClassroomCardProps> = ({ id, name, teacherUsername, onDe
   const navigate = useNavigate();
   const { userData } = useUserData();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDelete = async () => {
     try {
-      const response = await fetch('/php/classroom/remove_classroom.php', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete classroom');
-      }
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
       if (onDelete) {
         onDelete(id);
       }
+      setShowDeleteModal(false);
     } catch (error) {
-      console.error('Error deleting classroom:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete classroom');
+      setShowDeleteModal(false);
     }
   };
 
@@ -67,7 +51,7 @@ const ClassroomCard: FC<ClassroomCardProps> = ({ id, name, teacherUsername, onDe
         <p className="text-gray-600 text-sm h-10">Teacher: {teacherUsername}</p>
       </div>
 
-      {userData?.role === 'teacher' && (
+      {(userData?.role === 'admin' || userData?.role === 'teacher') && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -78,6 +62,10 @@ const ClassroomCard: FC<ClassroomCardProps> = ({ id, name, teacherUsername, onDe
         >
           🗑️
         </button>
+      )}
+
+      {error && (
+        <p className="text-red-500 text-sm absolute bottom-2 left-2">{error}</p>
       )}
 
       <Modal

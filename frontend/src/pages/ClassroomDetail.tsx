@@ -118,7 +118,7 @@ export default function ClassroomDetail() {
             >
               Students
             </button>
-            {userData?.role === 'teacher' && (
+            {userData?.role !== 'student' && (
               <button 
                 onClick={() => setActiveTab('settings')}
                 className={`py-4 ${
@@ -140,7 +140,7 @@ export default function ClassroomDetail() {
         ) : activeTab === 'students' ? (
           <ClassroomStudents />
         ) : (
-          userData?.role === 'teacher' && 
+          (userData?.role === 'teacher' || userData?.role === 'admin') && 
           <ClassroomSettings 
             currentName={classroom.name}
             onUpdate={handleClassUpdate}

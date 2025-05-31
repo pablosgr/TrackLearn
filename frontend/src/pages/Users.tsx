@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useUserData } from '../context/UserContext';
 import type { UserData } from '../types/user-context-type';
+import type { UserFormData } from '../components/form/UserForm';
 import UserCard from '../components/classroom/UserCard';
+import UserForm from '../components/form/UserForm';
+import Modal from '../components/ui/Modal';
 
 export default function Users() {
   const { userData } = useUserData();
@@ -10,14 +13,11 @@ export default function Users() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddTeacherModal, setShowAddTeacherModal] = useState(false);
+  const [addingTeacher, setAddingTeacher] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (userData && userData.role !== 'admin') {
-      navigate('/home');
-      return;
-    }
-
-    const fetchUsers = async () => {
+  const fetchUsers = async () => {
       try {
         const response = await fetch('/php/user/get_all_users.php', {
           credentials: 'include',
@@ -41,6 +41,11 @@ export default function Users() {
       }
     };
 
+  useEffect(() => {
+    if (userData && userData.role !== 'admin') {
+      navigate('/home');
+      return;
+    }
     fetchUsers();
   }, [userData, navigate]);
 
@@ -63,8 +68,38 @@ export default function Users() {
 
       setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
     } catch (err) {
-      // Throw the error up to the UserCard component
       throw err;
+    }
+  };
+
+  const handleAddTeacher = async (formData: UserFormData) => {
+    setAddingTeacher(true);
+    setModalError(null);
+    
+    try {
+      const response = await fetch('/php/user/teacher_register.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setModalError(data.error || 'Failed to add teacher');
+        throw error;
+      }
+
+      await fetchUsers();
+      setShowAddTeacherModal(false);
+      setModalError(null);
+    } catch (err) {
+      console.error('Error adding teacher:', err);
+    } finally {
+      setAddingTeacher(false);
     }
   };
 
@@ -90,7 +125,15 @@ export default function Users() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">User Management</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <button
+          onClick={() => setShowAddTeacherModal(true)}
+          className="bg-cyan-600 text-white px-4 py-2 rounded-lg hover:bg-cyan-700 transition-colors"
+        >
+          ➕ Add Teacher
+        </button>
+      </div>
       
       <div className="bg-white rounded-lg shadow-sm">
         {users.length > 0 ? (
@@ -107,6 +150,29 @@ export default function Users() {
           <p className="text-center py-8 text-gray-500">No users found.</p>
         )}
       </div>
+
+
+      <Modal
+        isOpen={showAddTeacherModal}
+        onClose={() => {
+          setShowAddTeacherModal(false);
+          setModalError(null);
+        }}
+        title="Add New Teacher"
+      >
+        <div className="space-y-4">
+          {modalError && (
+            <div className="bg-red-900/50 border border-red-500 text-red-200 px-4 py-3 rounded">
+              {modalError}
+            </div>
+          )}
+          <UserForm
+            onSubmit={handleAddTeacher}
+            submitButtonText="Add Teacher"
+            loading={addingTeacher}
+          />
+        </div>
+      </Modal>
     </div>
   );
 }

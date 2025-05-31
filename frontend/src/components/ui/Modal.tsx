@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 interface ModalProps {
   isOpen: boolean;
   onClose: (e?: React.MouseEvent) => void;
-  onConfirm: (e?: React.MouseEvent) => void;
+  onConfirm?: (e?: React.MouseEvent) => void;
   title: string;
   children: ReactNode;
 }

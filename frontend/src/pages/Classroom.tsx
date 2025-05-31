@@ -13,7 +13,6 @@ export default function Classroom() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const getStudentClasses = async () => {
-    console.log('Fetching student classes...');
     try {
       const response = await fetch('/php/classroom/student_get_classrooms.php', {
         method: 'GET',
@@ -51,10 +50,31 @@ export default function Classroom() {
     }
   }
 
+  const getAdminClasses = async () => {
+    try {
+      const response = await fetch('/php/classroom/get_all_classrooms.php', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response failed');
+      }
+
+      const data = await response.json();
+      setTeacherClassrooms(data.classrooms);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching all classrooms:', error);
+    }
+  }
+
   useEffect(() => {
     const fetchClassrooms = async () => {
       if (userData?.role === 'teacher') {
         await getTeacherClasses();
+      } else if (userData?.role === 'admin') {
+        await getAdminClasses();
       } else {
         await getStudentClasses();
       }
@@ -65,18 +85,42 @@ export default function Classroom() {
     }
   }, [userData]);
 
-  const handleClassroomDelete = (deletedId: string) => {
-    if (teacherClassrooms) {
-      setTeacherClassrooms(prevClassrooms => 
-        prevClassrooms && prevClassrooms.filter(classroom => classroom.id !== deletedId)
-      );
+  const handleClassroomDelete = async (deletedId: string) => {
+    try {
+      const response = await fetch('/php/classroom/remove_classroom.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: deletedId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete classroom');
+      }
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      if (teacherClassrooms) {
+        setTeacherClassrooms(prevClassrooms =>
+          prevClassrooms && prevClassrooms.filter(classroom => classroom.id !== deletedId)
+        );
+      }
+    } catch (error) {
+      console.error('Error deleting classroom:', error);
+      throw error;
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Classrooms</h1>
+        <h1 className="text-3xl font-bold">{userData?.role === 'admin' ? 'Classrooms Management' : 'My Classrooms'}</h1>
         {userData?.role === 'teacher' && (
           <button
             onClick={() => setShowCreateModal(true)}

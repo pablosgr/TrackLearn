@@ -1,22 +1,13 @@
 import { useUserData } from "../context/UserContext";
 
 export default function Test() {
-    const { userData, isLogged } = useUserData();
-
-    if (!isLogged) {
-        return (
-            <div>
-                <h1>Tests</h1>
-                <p>Please authenticate, redirecting to login..</p>
-            </div>
-        );
-    }
+    const { userData } = useUserData();
 
     if (userData?.role !== 'teacher') {
         return (
             <div>
                 <h1>Tests</h1>
-                <p>You are not authorized to view this page.</p>
+                <p>You are not authorized to view this page, unless you are admin..</p>
             </div>
         );
     }

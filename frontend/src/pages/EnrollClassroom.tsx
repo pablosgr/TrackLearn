@@ -37,8 +37,8 @@ export default function EnrollClassroom() {
 
     if (userData && userData.role === 'student') {
       enrollStudent();
-    } else if (userData && userData.role === 'teacher') {
-      setError("Teachers can't enroll in classes");
+    } else if (userData && (userData.role === 'teacher' || userData.role === 'admin')) {
+      setError("Only students can enroll in classrooms");
       setIsLoading(false);
     } else {
       navigate('/login');
